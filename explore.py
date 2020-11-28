@@ -23,18 +23,21 @@ def PrintStuff(v):
 		print('.. not found')
 		return
 	v_tag = v_obj.GetStrippedTag()
-	print('..', v_tag)
 	if v_tag == 'variable':
+		print('.. variable at address', hex(v_obj.GetValue()))
 		s = esym.FindByName(v)
 		if s < 0:
 			print('.. no ELF information')
 		else:
 			sym = esym.GetSymbol(s)
 			print('.. ELF: address =', hex(esym.GetSymbolAddress(sym)), 'size =', hex(esym.GetSymbolSize(sym)))
+	else:
+		print('..', v_tag)
 	p = v_obj.GetParent()
 	if p == None:
 		print('.. no parent')
 		return
+	print('.. found in', p.GetBasename())
 	t = v_obj
 	print('..', end=' ')
 	while True:

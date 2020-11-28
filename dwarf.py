@@ -84,12 +84,17 @@ class DwarfObject:
 		self.level = -1
 		self.ident = -1
 		self.name = ''
+		self.basename = ''		# Base filename (for compile units)
+		self.value = -1			# Address (for variables), enumeration (for enums)
 		self.attr = {}
 		self.children = []
 		self.refs = {}
 
 	def GetName(self):
 		return self.name
+
+	def GetBasename(self):
+		return self.basename
 
 	def GetParent(self):
 		return self.parent
@@ -105,6 +110,9 @@ class DwarfObject:
 
 	def GetIdent(self):
 		return self.ident
+
+	def GetValue(self):
+		return self.value
 
 	def GetAttr(self, attrname):
 		try:
@@ -156,9 +164,18 @@ class DwarfObject:
 		if attr == 'DW_AT_type':
 			value = int(value[1:-1], 16)
 		elif attr == 'DW_AT_name':
-			self.name = value
+			if self.tag == 'DW_TAG_compile_unit':			# Name is the filename
+				self.name = value.replace('\\', '/')		# Convert filename to unix form
+				self.basename = self.name.split('/')[-1]	# Remove the path
+			else:
+				self.name = value
 		elif attr == 'DW_AT_upper_bound':
 			value = int(value)
+		elif attr == 'DW_AT_location':
+			#print('DEBUG: DW_AT_location value = ', value)
+			f = value.split()
+			if f[-2] == '(DW_OP_addr:':
+				self.value = int(f[-1][0:-1], 16)
 		self.attr[attr] = value
 
 	# Find a child object; return None if not found
