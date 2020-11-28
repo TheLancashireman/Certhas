@@ -1,0 +1,86 @@
+
+DWARF notes:
+
+Each line  has an index specified in hex.
+
+The DW_TAG_ lines are the important indexed lines. They also have another number (nesting level?) before
+the index. The index is called the "tag-id" here.
+
+Tags found so far, and the interesting attributes (DW_AT_)
+
+DW_TAG_array_type
+	DW_AT_type			tag-id of the object that it's an array of
+	followed by a (list of?) DW_TAG_subrange_type tags, terminated by a null tag
+
+DW_TAG_base_type
+	DW_AT_name			e.g. unsigned long
+	DW_AT_byte_size		e.g. 4  WARNING: in the case of a pointer, this is the size of the object pointed to!
+
+DW_TAG_compile_unit
+	DW_AT_name			filename, including path
+	DW_AT_producer		seems to be a compiler identification. gcc gives options too
+	DW_AT_language		e.g. 1 (ANSI C) or 12 ((ANSI C99)
+
+DW_TAG_const_type
+	DW_AT_type			tag-id of the qualified type
+
+DW_TAG_enumeration_type
+	DW_AT_name			e.g. daayofweek_e
+	DW_AT_byte_size		e.g. 4
+	followed by a list of DW_TAG_enumerator items
+	the list is terminated by an empty tag
+
+DW_TAG_enumerator
+	DW_AT_name			e.g. monday, tuesday, ...
+	DW_AT_const_value	e.g. 0
+
+DW_TAG_formal_parameter
+	DW_AT_name			e.g. coreVars
+	probably only turns up in a DW_TAG_subprogram list
+
+DW_TAG_member
+	DW_AT_name			e.g. threadCfg
+	DW_AT_type			tag-id of type
+	DW_AT_data_member_location ... (DW_OP_plus_uconst: n)	offset e.g. (DW_OP_plus_uconst: 0)  DECIMAL!
+
+DW_TAG_pointer_type
+	DW_AT_type			tag-id of what the pointer points to
+
+DW_TAG_structure_type
+	DW_AT_name			e.g. mystruct_s
+	DW_AT_byte_size		e.g. 80    DECIMAL!
+	followed by a list of DW_TAG_member items
+	the list might be terminated by an empty DW_TAG line, e.g.  <2><2e5>: Abbrev Number: 0
+
+DW_TAG_subprogram
+	DW_AT_name			e.g. main
+	DW_AT_external, DW_AT_prototyped, DW_AT_low_pc, DW_AT_high_pc might be useful in the future
+	followed by a list of DW_TAG_xxx items  DW_TAG_formal_parameter, DW_TAG_variable, ...?
+	list is terminate by a null tag
+
+DW_TAG_subrange_type
+	DW_AT_upper_bound	e.g. 3  --- largest index of array (array size is 4 in this case)
+
+DW_TAG_subroutine_type
+	DW_AT_prototyped	e.g. 1 (true?)  Seems to be always 1
+	DW_AT_type			tag-id of type of return value?  If missing --> void?
+	followed by a possibly empty list of tags e.g. DW_TAG_formal_parameter 
+	Empty list may or may not be terminated by a null tag
+	Used for function pointers
+	e.g. myfuncptr <0x692d> --> DW_TAG_pointer_type <0x6926> --> DW_TAG_subroutine_type
+
+DW_TAG_typedef
+	DW_AT_name			e.g. ulong_t
+	DW_AT_type			tag-id of the type referenced.
+						Might be a chain, like address_t -> ulong_t -> unsigned long
+
+DW_TAG_variable
+	DW_AT_external		e.g. 1 (true?)  Seems to be always 1
+	DW_AT_name			variable name
+	DW_AT_type			tag-id of type
+	DW_AT_location		address
+	Watch out! local variables in subprograms look different.
+	We are probably only interested in DW_AT_external vars
+
+DW_TAG_volatile_type
+	DW_AT_type			tag-id of the qualified type
