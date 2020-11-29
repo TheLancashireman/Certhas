@@ -36,6 +36,11 @@ class DwarfInfo:
 
 			line = line.rstrip()
 			fields = line.split()
+
+			# There might be no space between the attribute name and the colon.
+			if fields[1][-1] == ':':
+				fields[1] = fields[1][0:-1]
+				fields.insert(2, ':')
 			if len(fields) >= 4:
 				x = fields[1]
 				if x[0:6] == 'DW_AT_':
