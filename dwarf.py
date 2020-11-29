@@ -44,13 +44,11 @@ class DwarfInfo:
 			if len(fields) >= 4:
 				x = fields[1]
 				if x[0:6] == 'DW_AT_':
-					if x == ':':
-						# No space before the ':' so trim it off. Value starts at field 2
-						self.name = x[0:-1]
-						self.value = ' '.join(fields[2:])
+					self.name = x
+					# ':' is a field by itself. Value starts at field 3
+					if fields[3] == '(indirect' and fields[4] == 'string,' and fields[5] == 'offset:':
+						self.value = ' '.join(fields[7:])
 					else:
-						self.name = x
-						# ':' is a field by itself. Value starts at field 3
 						self.value = ' '.join(fields[3:])
 					self.type = 'attr'
 					return self.type
@@ -186,6 +184,7 @@ class DwarfObject:
 			#print('DEBUG: DW_AT_location value = ', value)
 			f = value.split()
 			if f[-2] == '(DW_OP_addr:':
+				#print('DEBUG |'+f[-1][0:-1]+'|')
 				self.value = int(f[-1][0:-1], 16)
 		self.attr[attr] = value
 
