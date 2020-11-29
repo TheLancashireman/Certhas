@@ -1,8 +1,23 @@
 #!/bin/sh
 #
-# Run the Cirth test suite. In the base directory, type 'testsuite/runtest.sh'
+# Run the Certhas test suite. In the base directory, type 'testsuite/runtest.sh'
 #
-# Prerequisites: same as Cirth, plus gcc
+# Prerequisites: same as Certhas, plus gcc
+#
+# This file is part of Certhas.
+#
+# Certhas is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Certhas is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Certhas.  If not, see <http://www.gnu.org/licenses/>.
 
 (cd testsuite; gcc -g -o testprog testprog.c testdata.c)
 ./explore.py testsuite/testprog uc1
