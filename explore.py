@@ -36,7 +36,11 @@ def PrintStuff(v):
 
 	v_tag = v_obj.GetStrippedTag()
 	if v_tag == 'variable':
-		print('.. variable at address', hex(v_obj.GetValue()))
+		addr = v_obj.GetValue()
+		if addr == None:
+			print('.. variable; no address in dwarf data')
+		else:
+			print('.. variable at address', hex(addr))
 		s = esym.FindByName(v)
 		if s < 0:
 			print('.. no ELF information')

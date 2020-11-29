@@ -88,7 +88,7 @@ class DwarfObject:
 		self.ident = -1
 		self.name = ''
 		self.basename = ''		# Base filename (for compile units)
-		self.value = -1			# Address (for variables), enumeration (for enums)
+		self.value = None		# Address (for variables), enumeration (for enums)
 		self.attr = {}
 		self.children = []
 		self.refs = {}
