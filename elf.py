@@ -312,13 +312,13 @@ class ElfSection:
 	# The hex dump prints the bytes in byte-address order in groups of up to 4 bytes, regardless of endianness
 	#
 	def Read(self):
-		print('DEBUG: reading section', self.Name, 'from', self.elffilename)
+		#print('DEBUG: reading section', self.Name, 'from', self.elffilename)
 		offset = 0
 		cmd = 'readelf -x' + self.Name + ' ' + self.elffilename
 		hexdump = os.popen(cmd)
 		for line in hexdump:
 			line = line.rstrip()
-			print('DEBUG hexdump = |'+line+'|')
+			#print('DEBUG hexdump = |'+line+'|')
 
 			# This is tricky now. line.split() doesn't work because there could be spaces in the character
 			# representation at the end. However, the data block (including leading and trailing space)

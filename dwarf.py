@@ -114,12 +114,16 @@ class DwarfObject:
 	def GetValue(self):
 		return self.value
 
+	# Get an attribute
+	#
 	def GetAttr(self, attrname):
 		try:
 			return self.attr[attrname]
 		except:
 			return None
 
+	# Get a child element, given its reference ID
+	#
 	def GetChildByRef(self, ref):
 		try:
 			idx = self.refs[ref]
@@ -127,6 +131,8 @@ class DwarfObject:
 		except:
 			return None
 
+	# Get number of elements from an 'array_type' object
+	#
 	def GetNElements(self):
 		if self.tag != 'DW_TAG_array_type':
 			return None
@@ -186,6 +192,64 @@ class DwarfObject:
 				return c
 		return None
 
+	# Returns True if object is a pointer
+	#
+	def IsPointer(self):
+		p = self.parent
+		if p == None:
+			return False
+		o = self
+		while True:
+			if o.GetTag() == 'DW_TAG_pointer_type':
+				return True
+			ref = o.GetAttr('DW_AT_type')
+			if ref == None:
+				return False
+			o = p.GetChildByRef(ref)
+			if o == None:
+				return False
+
+	# Returns True if object is a composite type (struct or union)
+	# Returns None if not a data type
+	#
+	def IsComposite(self):
+		p = self.parent
+		if p == None:
+			return None
+		o = self
+		while True:
+			if o.GetTag() == 'DW_TAG_pointer_type':
+				return False
+			if o.GetTag() == 'DW_TAG_structure_type':	# FIXME ... or union?
+				return True
+			ref = o.GetAttr('DW_AT_type')
+			if ref == None:
+				return False
+			o = p.GetChildByRef(ref)
+			if o == None:
+				return False
+
+	# Returns no. of elements if object is an array; 0 if array type has no subrange; -1 otherwise
+	#
+	def GetArrayElements(self):
+		p = self.parent
+		if p == None:
+			return -1
+		o = self
+		while True:
+			if o.GetTag() == 'DW_TAG_array_type':
+				n = o.GetNElements()
+				if n == None:
+					return 0
+				return n
+			ref = o.GetAttr('DW_AT_type')
+			if ref == None:
+				return -1
+			o = p.GetChildByRef(ref)
+			if o == None:
+				return -1
+
+
 # ==============================================================================
 #
 # Class to store the top-level objects (compile_units) of the dwarf info tree and
@@ -201,7 +265,7 @@ class DwarfFile:
 		dwp = DwarfInfo(elffilename)
 		dwp.Next()
 		while dwp.type == 'tag':
-			o = DwarfObject(-1)
+			o = DwarfObject(None)
 			o.Read(dwp)
 			self.objects.append(o)
 

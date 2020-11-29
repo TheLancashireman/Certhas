@@ -21,6 +21,19 @@ def PrintStuff(v):
 	if v_obj == None:
 		print('.. not found')
 		return
+
+	is_pointer = v_obj.IsPointer()
+	if is_pointer:
+		print('.. is a pointer type')
+
+	n_array = v_obj.GetArrayElements()
+	if n_array >= 0:
+		print('.. is an array with', n_array, 'elements')
+
+	is_struct = v_obj.IsComposite()
+	if is_struct:
+		print('.. is a composite type')
+
 	v_tag = v_obj.GetStrippedTag()
 	if v_tag == 'variable':
 		print('.. variable at address', hex(v_obj.GetValue()))
@@ -31,10 +44,22 @@ def PrintStuff(v):
 			sym = esym.GetSymbol(s)
 			addr = esym.GetSymbolAddress(sym)
 			sz = esym.GetSymbolSize(sym)
-			if sz <= 8:						# Temporary: need to find out if the type allows it.
-				val = esect.Load(addr, sz)
+
+			if is_struct:
+				val = 'composite type'
 			else:
-				val = '?'
+				if n_array < 0:
+					n_items = 1
+				else:
+					n_items = n_array
+				if n_items == 0:
+					val = 'array with 0 elements'
+				else:
+					s = int(sz/n_items)
+					val = ''
+					for b in range(addr, addr+sz, s):
+						val = val + hex(esect.Load(b, s)) + ', '
+					val = val[0:-2]
 			print('.. ELF: address =', hex(addr), 'size =', hex(sz), 'value =', val)
 	else:
 		print('..', v_tag)
