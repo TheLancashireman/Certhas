@@ -59,11 +59,13 @@ class ElfHeader:
 					self.machine = fields[-1]
 			except:
 				pass
+		elfpipe.close()
 		if self.elfclass == 'ELF64':
 			self.bits = 64
-		else:
+		elif self.elfclass == 'ELF32':
 			self.bits = 32
-		elfpipe.close()
+		else:
+			raise ElfError(elffilename + ' doesn\'t appear to be an ELF binary file')
 		return
 
 # ==============================================================================
@@ -76,6 +78,13 @@ class ElfSymbolTable:
 		self.byName = {}
 		self.byAddress = {}
 		self.sortedAddress = []
+		self.sectiontable = None
+
+	# Set the section table
+	# Must be done before GetVariableValue() can be used.
+	#
+	def SetSectionTable(self, st):
+		self.sectiontable = st
 
 	# Reads the symbol table from the specified file
 	#
@@ -179,17 +188,19 @@ class ElfSymbolTable:
 		return sym
 
 	# Returns the value of a simple variable
+	# Note: if the variable is not simple, may return a very large number.
+	# There's a heuristic error branch (commented out), but the max. size is debatable.
 	#
-	def GetVariableValue(self, data, name):
+	def GetVariableValue(self, name):
 		sym = self.GetSymbolByName(name)
 		if len(sym) == 0:
 			return -1
 		a = self.GetSymbolAddress(sym)
 		l = self.GetSymbolSize(sym)
-		if l > 8:
-			print('GetVariableValue(): ERROR! Variable is not a simple variable', name)
-			return -1
-		v = data.Load(a, l)
+		#if l > 8:
+		#	print('GetVariableValue(): ERROR! Variable is not a simple variable', name)
+		#	return -1
+		v = self.sectiontable.Load(a, l)
 		return v
 		
 
@@ -269,14 +280,16 @@ class ElfSymbolTable:
 # ElfSection - representation of an ELF section including the contents if needed
 #
 class ElfSection:
-	def __init__(self, idx, fields):
+	def __init__(self, fn, idx, fields):
+		self.elffilename = fn
+		self.Nr = idx
+
 		if len(fields) == 8 and fields[0] == 'NULL':
 			fields.insert(0, '')		# Insert a blank name
 		if len(fields) == 9:
 			fields.insert(6, '')		# Insert an empty set of flags
 		#print('DEBUG: ', fields)
 
-		self.Nr = idx
 		self.Name = fields[0]
 		self.Type = fields[1]
 		self.Addr = fields[2]
@@ -290,34 +303,43 @@ class ElfSection:
 
 		self.baseaddr = int(self.Addr, 16)
 		self.size = int(self.Size, 16)
-		self.loaded = False
-		self.hasdata = False
+		self.loaded = False		# Tried loading
+		self.hasdata = False	# There is data in the data array
 		self.data = []
 		#print('DEBUG: section', self.Nr, self.Name, self.Type, self.Addr, self.Size)
 
 	# Read the section into the self.data list
 	# The hex dump prints the bytes in byte-address order in groups of up to 4 bytes, regardless of endianness
 	#
-	def Read(self, elffilename):
+	def Read(self):
+		print('DEBUG: reading section', self.Name, 'from', self.elffilename)
 		offset = 0
-		cmd = 'readelf -x' + self.Name + ' ' + elffilename
+		cmd = 'readelf -x' + self.Name + ' ' + self.elffilename
 		hexdump = os.popen(cmd)
 		for line in hexdump:
 			line = line.rstrip()
-			fields = line.split()
-			if len(fields) >= 3 and fields[0][0:2] == '0x':
-				addr = int(fields[0], 16)
-				if offset != addr - self.baseaddr:
-					# A gap. Does this ever happen? If it does we'll have to insert padding
-					raise ElfError('Gap found in hex dump of section ' +
-												self.Name + ' at ' + hex(self.baseaddr + offset))
-				block = ''
-				for f in fields[1:-2]:
-					block = block + f
-				for i in range(0, len(block), 2):
-					byte = block[i:i+2]
-					data.append(int(byte, 16))
-					offset = offset + 1
+			print('DEBUG hexdump = |'+line+'|')
+
+			# This is tricky now. line.split() doesn't work because there could be spaces in the character
+			# representation at the end. However, the data block (including leading and trailing space)
+			# should b 37 characters long. Let's assume that, for now.
+			pos = line.find('0x')
+			if pos < 0:
+				continue		# '0x' not found; ignore line
+			line = line[pos:]	# Trim off everything before the '0x'
+			pos = line.find(' ')
+			if pos < 0:
+				continue		# ' ' not found; ignore line
+			addr = int(line[0:pos], 16)
+			if offset != addr - self.baseaddr:
+				# A gap. Does this ever happen? If it does we'll have to insert padding
+				raise ElfError('Gap found in hex dump of section ' + self.Name + ' at ' + hex(self.baseaddr + offset))
+			block = line[pos:pos+37]			# The data part, including spaces
+			block = block.replace(' ', '')		# Remove all the spaces
+			for i in range(0, len(block), 2):	# length should be even. If not, ignore the last half-byte.
+				byte = block[i:i+2]
+				self.data.append(int(byte, 16))
+				offset = offset + 1
 		hexdump.close()
 		self.loaded = True
 		self.hasdata = (offset != 0)
@@ -327,7 +349,16 @@ class ElfSection:
 	# Load n bytes of data from a given address
 	#
 	def Load(self, addr, n, littleendian):
+		if addr < self.baseaddr:
+			return None					# Not in section
 		offset = addr - self.baseaddr
+		if offset + n > self.size:
+			return None					# Extends beyond section
+		if not self.hasdata:
+			if not self.loaded:
+				self.Read()
+			if not self.hasdata:
+				return None				# Section has no data
 		tval = 0
 		if littleendian:
 			order = range(n-1, -1, -1)
@@ -340,7 +371,18 @@ class ElfSection:
 	# Load a 0-terminated string from a given address
 	#
 	def LoadString(self, addr, max):
+		if addr < self.baseaddr:
+			return None					# Not in section
+		if addr >= self.baseaddr + self.size:
+			return None					# Not in section
+		if not self.hasdata:
+			if not self.loaded:
+				self.Read()
+			if not self.hasdata:
+				return None				# Section has no data
 		i = addr - self.baseaddr
+		if max > size - i:
+			max = size - i				# Don't allow load to extend beyond section
 		count = 0
 		str = ''
 		while self.data[i] != 0 and count < max:
@@ -355,10 +397,13 @@ class ElfSection:
 # ElfSectionTable - read and store the content of a section
 #
 class ElfSectionTable:
-	def __init__(self):
+	def __init__(self, e):
 		self.sections = []
+		self.littleendian = e
 		return
 
+	# Read and store the section table
+	#
 	def Read(self, elffilename):
 		cmd = 'readelf -SW ' + elffilename
 		sects = os.popen(cmd)
@@ -370,6 +415,24 @@ class ElfSectionTable:
 				if n > m and line[m+1:n] != 'Nr':
 					idx = int(line[m+1:n])
 					fields = line[n+1:].split()
-					self.sections.append(ElfSection(idx, fields))
+					self.sections.append(ElfSection(elffilename, idx, fields))
 		sects.close()
 		return
+
+	# Load n bytes of data from a given address
+	#
+	def Load(self, addr, n):
+		for s in self.sections:
+			v = s.Load(addr, n, self.littleendian)
+			if v != None:
+				return v
+		return None
+
+	# Load a 0-terminated string from a given address
+	#
+	def LoadString(self, addr, max):
+		for s in self.sections:
+			str = s.LoadString(addr, max)
+			if str != None:
+				return str
+		return None

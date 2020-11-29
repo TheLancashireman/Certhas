@@ -8,11 +8,10 @@ import sys
 from elf import ElfHeader, ElfSymbolTable, ElfSectionTable
 from dwarf import DwarfFile
 
-eh = ElfHeader()
-esym = ElfSymbolTable()
-esect = ElfSectionTable()
-
-df = DwarfFile()
+eh = None
+esym = None
+esect = None
+df = None
 
 # Print the information about a name or type
 #
@@ -30,7 +29,13 @@ def PrintStuff(v):
 			print('.. no ELF information')
 		else:
 			sym = esym.GetSymbol(s)
-			print('.. ELF: address =', hex(esym.GetSymbolAddress(sym)), 'size =', hex(esym.GetSymbolSize(sym)))
+			addr = esym.GetSymbolAddress(sym)
+			sz = esym.GetSymbolSize(sym)
+			if sz <= 8:						# Temporary: need to find out if the type allows it.
+				val = esect.Load(addr, sz)
+			else:
+				val = '?'
+			print('.. ELF: address =', hex(addr), 'size =', hex(sz), 'value =', val)
 	else:
 		print('..', v_tag)
 	p = v_obj.GetParent()
@@ -92,16 +97,19 @@ if len(stream) == 0:
 	stream = sys.stdin
 	interactive = True
 
-#eh.Read(elffilename)
-#if eh.GetClass() == '':
-#	print('Error: '+elffilename+' doesn't look like an ELF file')
-#	exit(1)
-
 print('Reading the ELF/DWARF information; this might take some time')
 
+eh = ElfHeader()
 eh.Read(elffilename)
+
+esym = ElfSymbolTable()
 esym.Read(elffilename)
+
+esect = ElfSectionTable(eh.GetEndian() == 'little')
 esect.Read(elffilename)
+esym.SetSectionTable(esect)
+
+df = DwarfFile()
 df.Read(elffilename)
 
 if interactive:
