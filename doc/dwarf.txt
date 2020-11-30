@@ -42,6 +42,7 @@ DW_TAG_member
 	DW_AT_name			e.g. threadCfg
 	DW_AT_type			tag-id of type
 	DW_AT_data_member_location ... (DW_OP_plus_uconst: n)	offset e.g. (DW_OP_plus_uconst: 0)  DECIMAL!
+                               only for structs; for unions, the location is 0 by definition
 
 DW_TAG_pointer_type
 	DW_AT_type			tag-id of what the pointer points to
@@ -72,13 +73,25 @@ DW_TAG_subroutine_type
 DW_TAG_typedef
 	DW_AT_name			e.g. ulong_t
 	DW_AT_type			tag-id of the type referenced.
-						Might be a chain, like address_t -> ulong_t -> unsigned long
+
+DW_TAG_union_type
+	DW_AT_name			e.g. myunion_u
+	DW_AT_byte_size		e.g. 8 - probably decimal
+	followed by a list of DW_TAG_member items
+	the list might be terminated by an empty DW_TAG line, e.g.  <2><2e5>: Abbrev Number: 0
 
 DW_TAG_variable
 	DW_AT_external		e.g. 1 (true?)  Seems to be always 1
 	DW_AT_name			variable name
 	DW_AT_type			tag-id of type
 	DW_AT_location		address
+	DW_AT_specification reference to the DW_TAG_variable for the extern declaration
+
+	Sometimes there's a  DW_TAG_variable (with a name) for each extern declaration and a DW_TAG_variable
+    (without as name but with a DW_AT_specification) for the actual definition. In these cases, the
+    DW_AT_location is in the same object as the DW_AT_specification, which doesn't have a name.
+	This might be interesting, except that the location is available from the ELF table so using the DWARF
+	location is only a means to check.
 	Watch out! local variables in subprograms look different.
 	We are probably only interested in DW_AT_external vars
 

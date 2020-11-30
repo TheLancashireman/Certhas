@@ -104,6 +104,7 @@ class DwarfObject:
 		self.name = ''
 		self.basename = ''		# Base filename (for compile units)
 		self.value = None		# Address (for variables), enumeration (for enums)
+		self.specref = None		# The 'definition' DW_TAG_variable object, if any
 		self.attr = {}
 		self.children = []
 		self.refs = {}
@@ -131,6 +132,12 @@ class DwarfObject:
 
 	def GetValue(self):
 		return self.value
+
+	def GetSpecref(self):
+		return self.specref
+
+	def SetSpecref(self, specref):
+		self.specref = specref
 
 	# Get an attribute
 	#
@@ -177,6 +184,13 @@ class DwarfObject:
 				if c.ident > 0:
 					self.refs[c.ident] = len(self.children)		# Index of the child, starting at 0
 				self.children.append(c)
+			# Now go through the list and link up the DW_AT_specification objects with their declarations.
+			for c in self.children:
+				sr = c.GetAttr('DW_AT_specification')
+				if sr != None:
+					c1 = self.GetChildByRef(sr)
+					if c1 != None:
+						c1.SetSpecref(c)
 			return
 		else:
 			raise DwarfError('Not a tag')
@@ -185,7 +199,7 @@ class DwarfObject:
 	# Some attributes are treated specially.
 	#
 	def AddAttr(self, attr, value):
-		if attr == 'DW_AT_type':
+		if attr == 'DW_AT_type' or attr == 'DW_AT_specification':
 			value = int(value[1:-1], 16)
 		elif attr == 'DW_AT_name':
 			if self.tag == 'DW_TAG_compile_unit':			# Name is the filename
@@ -237,9 +251,12 @@ class DwarfObject:
 			return None
 		o = self
 		while True:
-			if o.GetTag() == 'DW_TAG_pointer_type':
+			t = o.GetTag()
+			if t == 'DW_TAG_pointer_type':
 				return False
-			if o.GetTag() == 'DW_TAG_structure_type':	# FIXME ... or union?
+			if t == 'DW_TAG_structure_type':
+				return True
+			if t == 'DW_TAG_union_type':
 				return True
 			ref = o.GetAttr('DW_AT_type')
 			if ref == None:
@@ -296,3 +313,19 @@ class DwarfFile:
 			if obj != None:
 				return obj
 		return None
+
+	# Find a named variable with either a location or a reference to a specification object
+	# If there's no object with either, return the first match (same behavior as FindObject()
+	#
+	def FindObjectDefinition(self, objname):
+		match = None				# Matches name only
+		for o in self.objects:
+			obj = o.FindObject(objname)
+			if obj != None:
+				if match == None:
+					match = obj
+				if obj.GetSpecref() != None:
+					return obj
+				if obj.GetAttr('DW_AT_location') != None:
+					return obj
+		return match

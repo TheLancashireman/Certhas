@@ -34,7 +34,7 @@ df = None
 #
 def PrintStuff(v):
 	print('Name: ', v)
-	v_obj = df.FindObject(v)
+	v_obj = df.FindObjectDefinition(v)
 	if v_obj == None:
 		print('.. not found')
 		return
@@ -54,6 +54,10 @@ def PrintStuff(v):
 	v_tag = v_obj.GetStrippedTag()
 	if v_tag == 'variable':
 		addr = v_obj.GetValue()
+		if addr == None:
+			spec = v_obj.GetSpecref()
+			if spec != None:
+				addr = spec.GetValue()
 		if addr == None:
 			print('.. variable; no address in dwarf data')
 		else:
