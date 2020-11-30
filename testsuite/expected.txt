@@ -1,0 +1,125 @@
+Reading the ELF/DWARF information; this might take some time
+Name:  uc1
+.. variable at address 0x2016
+.. ELF: address = 0x2016 size = 0x1 value = 0x41
+.. found in testdata.c
+.. const : Base type unsigned char 
+Name:  us1
+.. variable at address 0x2018
+.. ELF: address = 0x2018 size = 0x2 value = 0x1234
+.. found in testdata.c
+.. const : Base type short unsigned int 
+Name:  ui1
+.. variable at address 0x201c
+.. ELF: address = 0x201c size = 0x4 value = 0x12345678
+.. found in testdata.c
+.. const : Base type unsigned int 
+Name:  ul1
+.. variable at address 0x2020
+.. ELF: address = 0x2020 size = 0x8 value = 0x123456789abcdef0
+.. found in testdata.c
+.. const : Base type long long unsigned int 
+Name:  sc1
+.. variable at address 0x2028
+.. ELF: address = 0x2028 size = 0x1 value = 0x61
+.. found in testdata.c
+.. const : Base type signed char 
+Name:  ss1
+.. variable at address 0x202a
+.. ELF: address = 0x202a size = 0x2 value = 0x4321
+.. found in testdata.c
+.. const : Base type short int 
+Name:  si1
+.. variable at address 0x202c
+.. ELF: address = 0x202c size = 0x4 value = 0x87654321
+.. found in testdata.c
+.. const : Base type int 
+Name:  sl1
+.. variable at address 0x2030
+.. ELF: address = 0x2030 size = 0x8 value = 0xfedcba9876543210
+.. found in testdata.c
+.. const : Base type long long int 
+Name:  p1
+.. is a pointer type
+.. variable at address 0x3d40
+.. ELF: address = 0x3d40 size = 0x8 value = 0x2016
+.. found in testdata.c
+.. const pointer to const : Base type unsigned char 
+Name:  p2
+.. is a pointer type
+.. variable at address 0x3d48
+.. ELF: address = 0x3d48 size = 0x8 value = 0x2018
+.. found in testdata.c
+.. const pointer to const : Base type short unsigned int 
+Name:  p3
+.. is a pointer type
+.. variable at address 0x3d50
+.. ELF: address = 0x3d50 size = 0x8 value = 0x201c
+.. found in testdata.c
+.. const pointer to const : Base type unsigned int 
+Name:  p4
+.. is a pointer type
+.. variable at address 0x3d58
+.. ELF: address = 0x3d58 size = 0x8 value = 0x2020
+.. found in testdata.c
+.. const pointer to const : Base type long long unsigned int 
+Name:  p5
+.. is a pointer type
+.. variable at address 0x3d60
+.. ELF: address = 0x3d60 size = 0x8 value = 0x2048
+.. found in testdata.c
+.. const pointer to const : Base type unsigned char 
+Name:  p6
+.. is a pointer type
+.. variable at address 0x3d68
+.. ELF: address = 0x3d68 size = 0x8 value = 0x2008
+.. found in testdata.c
+.. const pointer to const : Base type unsigned char 
+Name:  p7
+.. is a pointer type
+.. variable at address 0x3d70
+.. ELF: address = 0x3d70 size = 0x8 value = 0x4030
+.. found in testdata.c
+.. const pointer to : Base type unsigned char 
+Name:  p8
+.. is a pointer type
+.. variable at address 0x3de8
+.. ELF: address = 0x3de8 size = 0x8 value = 0x3d80
+.. found in testdata.c
+.. const pointer to const struct1_t 
+Name:  p9
+.. is a pointer type
+.. variable at address 0x3e00
+.. ELF: address = 0x3e00 size = 0x8 value = 0x3df8
+.. found in testdata.c
+.. const pointer to const union1_t 
+Name:  struct1a
+.. is a composite type
+.. variable at address 0x3d80
+.. ELF: address = 0x3d80 size = 0x28 value = composite type
+.. found in testdata.c
+.. const struct1_t 
+Name:  struct1b
+.. is a composite type
+.. variable at address 0x3dc0
+.. ELF: address = 0x3dc0 size = 0x28 value = composite type
+.. found in testdata.c
+.. const struct struct1_s 
+Name:  union1a
+.. is a composite type
+.. variable at address 0x3df0
+.. ELF: address = 0x3df0 size = 0x8 value = composite type
+.. found in testdata.c
+.. const union1_t 
+Name:  union1b
+.. is a composite type
+.. variable at address 0x3df8
+.. ELF: address = 0x3df8 size = 0x8 value = composite type
+.. found in testdata.c
+.. const union_type union1_u 
+Name:  fp1
+.. is a pointer type
+.. variable at address 0x3e08
+.. ELF: address = 0x3e08 size = 0x8 value = 0x125b
+.. found in testdata.c
+.. const fp_t 
