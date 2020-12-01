@@ -285,11 +285,34 @@ class DwarfObject:
 			if o == None:
 				return -1
 
+	# Returns a list of enumerators if the object is an enumerated type; None otherwise
+	#
+	def GetEnumerators(self):
+		if self.tag != 'DW_TAG_enumeration_type':
+			e = []
+			for c in self.children:
+				if c.GetTag() == 'DW_TAG_enumerator':
+					e.append(c)
+			return e
+		else:
+			return None
+
+	# Returns a list of members if the object is a struct or union; None otherwise
+	#
+	def GetMembers(self):
+		if self.tag == 'DW_TAG_structure_type' or self.tag == 'DW_TAG_union_type':
+			m = []
+			for c in self.children:
+				if c.GetTag() == 'DW_TAG_member':
+					e.append(m)
+			return e
+		else:
+			return None
 
 # ==============================================================================
 #
 # Class to store the top-level objects (compile_units) of the dwarf info tree and
-# provide search functions
+# provide top-level search functions
 #
 class DwarfFile:
 	def __init__(self):
