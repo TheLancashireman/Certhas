@@ -27,6 +27,7 @@
 	struct1a struct1b \
 	union1a union1b \
 	fp1 \
+	enum1_t struct1_t union1_t fp_t \
 	> results.txt
 diff -q results.txt testsuite/expected.txt
 if [ $? = 0 ]; then

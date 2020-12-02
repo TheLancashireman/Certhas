@@ -104,7 +104,7 @@ Name:  struct1b
 .. variable at address 0x3dc0
 .. ELF: address = 0x3dc0 size = 0x28 value = composite type
 .. found in testdata.c
-.. const struct struct1_s 
+.. const struct struct1_s
 Name:  union1a
 .. is a composite type
 .. variable at address 0x3df0
@@ -116,10 +116,37 @@ Name:  union1b
 .. variable at address 0x3df8
 .. ELF: address = 0x3df8 size = 0x8 value = composite type
 .. found in testdata.c
-.. const union_type union1_u 
+.. const union union1_u
 Name:  fp1
 .. is a pointer type
 .. variable at address 0x3e08
 .. ELF: address = 0x3e08 size = 0x8 value = 0x125b
 .. found in testdata.c
 .. const fp_t 
+Name:  enum1_t
+.. typedef
+.. found in testdata.c
+.. enum enum1_e
+..    enum1a = 0
+..    enum1b = 1
+..    enum1c = 2
+..    enum1d = 3
+..    enum1e = 4
+..    enum1f = 5
+..    enum1g = 6
+..    enum1h = 7
+Name:  struct1_t
+.. is a composite type
+.. typedef
+.. found in testprog.c
+.. struct struct1_s
+Name:  union1_t
+.. is a composite type
+.. typedef
+.. found in testprog.c
+.. union union1_u
+Name:  fp_t
+.. is a pointer type
+.. typedef
+.. found in testprog.c
+.. pointer to subroutine_type  : Base type int 
