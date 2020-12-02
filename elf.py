@@ -85,6 +85,25 @@ class ElfHeader:
 
 # ==============================================================================
 #
+# ElfSymbol - one symbol in the ELF symbol table
+#
+class ElfSymbol:
+	def __init__(self, fields):
+		self.num = fields[0]
+		self.value = int(fields[1], 16)
+		self.size = int(fields[2])
+		self.type = fields[3]
+		self.bind = fields[4]
+		self.vis = fields[5]
+		self.ndx = fields[6]
+		if len(fields) >= 8:
+			self.name = fields[7]
+		else:
+			self.name = None
+
+
+# ==============================================================================
+#
 # ElfSymbolTable - read and store the ELF symbol table
 #
 class ElfSymbolTable:
@@ -115,17 +134,18 @@ class ElfSymbolTable:
 				pass
 			else:
 				# Add the fields to the symbol table
-				self.symtab.append(fields)
+				s = ElfSymbol(fields)
+				self.symtab.append(s)
 				# The symbol name is in field 7 so we need at least 8 fields
-				if len(fields) == 8:
+				if s.name != None:
 					# Add the symbol name to the byName dictionary.
 					# The names should be unique, so we overwrite anything that's already there
-					self.byName[fields[7]] = idx
+					self.byName[s.name] = idx
 
 					# Add the symbol to the byAddress dictionary.
 					# There could be several symbols at any address, so we append to the list.
 					# If there's no symbol at the address we create an empty list first.
-					addr = int(fields[1], 16)
+					addr = s.value
 					try:
 						x = self.byAddress[addr]
 					except:
@@ -171,26 +191,17 @@ class ElfSymbolTable:
 	# Returns the name field of a symbol
 	#
 	def GetSymbolName(self, s):
-		try:
-			return s[7]
-		except:
-			return ''
+		return s.name
 
 	# Returns the address field of a symbol as a number
 	#
 	def GetSymbolAddress(self, s):
-		try:
-			return int(s[1], 16)
-		except:
-			return -1
+		return s.value
 
 	# Returns the name size field of a symbol as a number
 	#
 	def GetSymbolSize(self, s):
-		try:
-			return int(s[2])
-		except:
-			return -1
+		return s.size
 
 	# Returns the full symbol information for a named symbol
 	#
@@ -199,22 +210,15 @@ class ElfSymbolTable:
 		if idx < 0:
 			return None
 		sym = self.GetSymbol(idx)
-		print(sym)
 		return sym
 
 	# Returns the value of a simple variable
 	# Note: if the variable is not simple, may return a very large number.
-	# There's a heuristic error branch (commented out), but the max. size is debatable.
 	#
 	def GetVariableValue(self, name):
 		sym = self.GetSymbolByName(name)
-		if len(sym) == 0:
-			return -1
 		a = self.GetSymbolAddress(sym)
 		l = self.GetSymbolSize(sym)
-		#if l > 8:
-		#	print('GetVariableValue(): ERROR! Variable is not a simple variable', name)
-		#	return -1
 		v = self.sectiontable.Load(a, l)
 		return v
 		
