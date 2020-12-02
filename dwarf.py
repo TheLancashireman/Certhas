@@ -209,6 +209,9 @@ class DwarfObject:
 				self.name = value
 		elif attr == 'DW_AT_upper_bound':
 			value = int(value)
+		elif attr == 'DW_AT_const_value':
+			value = int(value)
+			self.value = value
 		elif attr == 'DW_AT_location':
 			#print('DEBUG: DW_AT_location value = ', value)
 			f = value.split()
@@ -226,6 +229,7 @@ class DwarfObject:
 		return None
 
 	# Returns True if object is a pointer
+	# Returns None if not a data type (no parent)
 	#
 	def IsPointer(self):
 		p = self.parent
@@ -243,7 +247,7 @@ class DwarfObject:
 				return False
 
 	# Returns True if object is a composite type (struct or union)
-	# Returns None if not a data type
+	# Returns None if not a data type (no parent)
 	#
 	def IsComposite(self):
 		p = self.parent
@@ -257,6 +261,27 @@ class DwarfObject:
 			if t == 'DW_TAG_structure_type':
 				return True
 			if t == 'DW_TAG_union_type':
+				return True
+			ref = o.GetAttr('DW_AT_type')
+			if ref == None:
+				return False
+			o = p.GetChildByRef(ref)
+			if o == None:
+				return False
+
+	# Returns True if object is an enumeration type
+	# Returns None if not a data type (no parent)
+	#
+	def IsEnum(self):
+		p = self.parent
+		if p == None:
+			return None
+		o = self
+		while True:
+			t = o.GetTag()
+			if t == 'DW_TAG_pointer_type':
+				return False
+			if t == 'DW_TAG_enumeration_type':
 				return True
 			ref = o.GetAttr('DW_AT_type')
 			if ref == None:
@@ -288,12 +313,24 @@ class DwarfObject:
 	# Returns a list of enumerators if the object is an enumerated type; None otherwise
 	#
 	def GetEnumerators(self):
-		if self.tag != 'DW_TAG_enumeration_type':
+		if self.tag == 'DW_TAG_enumeration_type':
 			e = []
 			for c in self.children:
 				if c.GetTag() == 'DW_TAG_enumerator':
 					e.append(c)
 			return e
+		else:
+			return None
+
+	# Returns the enumerator name (symbol) for a given number
+	# If not found, or if the object is not an enumerated type, return None
+	#
+	def GetEnumeratorName(self, num):
+		if self.tag == 'DW_TAG_enumeration_type':
+			for c in self.children:
+				if c.GetTag() == 'DW_TAG_enumerator' and c.GetValue() == num:
+					return c.name
+			return None
 		else:
 			return None
 
