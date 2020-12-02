@@ -110,9 +110,22 @@ def PrintStuff(v):
 		elif tag == 'volatile_type':
 			print('volatile', end=' ')
 		elif tag == 'structure_type':
-			print('struct', name, end=' ')
+			print('struct', name)
+			if v_tag != 'variable':
+				pass	# TODO: print members
+			return		# structure_type is a base type
+		elif tag == 'union_type':
+			print('union', name)
+			if v_tag != 'variable':
+				pass	# TODO: print members
+			return		# union_type is a base type
 		elif tag == 'enumeration_type':
-			print('enum', name, end=' ')
+			print('enum', name)
+			if v_tag != 'variable':
+				el = t.GetEnumerators()
+				for e in el:
+					print('..   ', e.name, '=', e.value)
+			return		# enumeration_type is a base type
 		elif tag == 'base_type':
 			print(': Base type', name, end=' ')
 		elif tag == 'array_type':
