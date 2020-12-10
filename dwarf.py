@@ -223,7 +223,7 @@ class DwarfObject:
 			f = value.split()
 			if f[-2] == '(DW_OP_plus_uconst:':
 				#print('DEBUG |'+f[-1][0:-1]+'|')
-				value = int(f[-1][0:-1], 16)
+				value = int(f[-1][0:-1], 10)
 		self.attr[attr] = value
 
 	# Find a child object; return None if not found
