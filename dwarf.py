@@ -217,7 +217,13 @@ class DwarfObject:
 			f = value.split()
 			if f[-2] == '(DW_OP_addr:':
 				#print('DEBUG |'+f[-1][0:-1]+'|')
-				self.value = int(f[-1][0:-1], 16)
+				value = int(f[-1][0:-1], 16)
+		elif attr == 'DW_AT_data_member_location':
+			#print('DEBUG: DW_AT_data_member_location value = ', value)
+			f = value.split()
+			if f[-2] == '(DW_OP_plus_uconst:':
+				#print('DEBUG |'+f[-1][0:-1]+'|')
+				value = int(f[-1][0:-1], 16)
 		self.attr[attr] = value
 
 	# Find a child object; return None if not found
