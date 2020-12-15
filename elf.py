@@ -400,8 +400,8 @@ class ElfSection:
 			if not self.hasdata:
 				return None				# Section has no data
 		i = addr - self.baseaddr
-		if max > size - i:
-			max = size - i				# Don't allow load to extend beyond section
+		if max > self.size - i:
+			max = self.size - i				# Don't allow load to extend beyond section
 		count = 0
 		str = ''
 		while self.data[i] != 0 and count < max:
