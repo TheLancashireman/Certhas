@@ -20,6 +20,7 @@
 # along with Certhas.  If not, see <http://www.gnu.org/licenses/>.
 
 (cd testsuite; gcc -g -o testprog testprog.c testdata.c)
+./unit_test.py > results.txt
 ./explore.py testsuite/testprog \
 	uc1 us1 ui1 ul1 \
 	sc1 ss1 si1 sl1 \
@@ -28,7 +29,7 @@
 	union1a union1b \
 	fp1 \
 	enum1_t struct1_t union1_t fp_t \
-	> results.txt
+	>> results.txt
 diff -q results.txt testsuite/expected.txt
 if [ $? = 0 ]; then
 	echo "TEST PASSED"
