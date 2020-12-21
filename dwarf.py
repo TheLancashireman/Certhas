@@ -216,12 +216,15 @@ class DwarfObject:
 			#print('DEBUG: DW_AT_location value = ', value)
 			f = value.split()
 			if f[-2] == '(DW_OP_addr:':
-				#print('DEBUG |'+f[-1][0:-1]+'|')
+				#print('DEBUG', self.name, '|'+f[-1][0:-1]+'|')
 				value = int(f[-1][0:-1], 16)
 		elif attr == 'DW_AT_data_member_location':
+			# Value might be just a number, or a DW_OP_plus_uconst string
 			#print('DEBUG: DW_AT_data_member_location value = ', value)
 			f = value.split()
-			if f[-2] == '(DW_OP_plus_uconst:':
+			if len(f) == 1:
+				value = int(f[0])
+			elif f[-2] == '(DW_OP_plus_uconst:':
 				#print('DEBUG |'+f[-1][0:-1]+'|')
 				value = int(f[-1][0:-1], 10)
 		self.attr[attr] = value
