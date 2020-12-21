@@ -27,6 +27,27 @@ class ElfError(Exception):
 
 # ==============================================================================
 #
+# Elf - standalone functions and other useful odds'n'ends
+#
+class Elf:
+	def __init__(self):
+		return
+
+# Convert an unsigned value to signed
+#   v = unsigned value
+#   s = size in bytes
+#
+	@staticmethod
+	def ConvertToSigned(v, s):
+		limit = 2 ** (s * 8)
+		if v < limit:				# Avoid strange aliasing effects: raise an exception
+			if v < int(limit/2):
+				return v			# Number is positive, zero or already negative
+			return v - limit		# Convert to negative
+		raise ElfError(str(v) + ' is out of range for ' + str(s) + '-byte variable')
+
+# ==============================================================================
+#
 # ElfHeader - read and store the ELF header
 #
 class ElfHeader:
@@ -221,7 +242,16 @@ class ElfSymbolTable:
 		l = self.GetSymbolSize(sym)
 		v = self.sectiontable.Load(a, l)
 		return v
-		
+
+	# Returns the value of a simple variable
+	# Note: if the variable is not simple, may return a very large number.
+	#
+	def GetSignedVariableValue(self, name):
+		sym = self.GetSymbolByName(name)
+		a = self.GetSymbolAddress(sym)
+		l = self.GetSymbolSize(sym)
+		v = self.sectiontable.LoadSigned(a, l)
+		return v
 
 	# Returns the name of the first symbol at a given address that starts with a given pattern
 	# If the address is 0, returns 'NULL'
@@ -445,6 +475,14 @@ class ElfSectionTable:
 			v = s.Load(addr, n, self.littleendian)
 			if v != None:
 				return v
+		return None
+
+	# Load n bytes of data from a given address, converted to a signed number
+	#
+	def LoadSigned(self, addr, n):
+		v = self.Load(addr, n)
+		if v != None:
+			return Elf.ConvertToSigned(v, n)
 		return None
 
 	# Load a 0-terminated string from a given address
