@@ -1,5 +1,11 @@
 # ELF/DWARF binary analysis tools
 
+# IMPORTANT - no longer developed or maintained.
+
+gdb's Python interface is a much easier way to get at the contents of an ELF file. A multiarch gdb
+will happily read foreign binaries and allow you to access the symbol tables and memory contents
+without having to have target hardware.
+
 ## Description
 
 Certhas is a collection of python3 classes for extracting information from ELF/DWARF binary files.
